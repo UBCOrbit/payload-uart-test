@@ -7,9 +7,10 @@
 
 #include <android/log.h>
 
-#define LOG_TAG "UART fd call"
+#define LOG_TAG "UART Test"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
 // File descriptor for the serial device
 // Yes I know this is bad practice but whatevs
@@ -58,12 +59,19 @@ Java_us_laelath_inforceserialio_MainActivity_runReadTest(
 
     std::string msg = "";
 
-    do {
-        msg = readfd();
-        if (msg != "") {
-            std::cout << msg;
+    while (true) {
+        std::string recv = readfd();
+        if (recv == "") {
+            break;
         }
-    } while (msg != "");
+
+        msg += recv;
+        size_t idx = msg.find('\n');
+        if (idx != std::string::npos) {
+            LOGI("%s", msg.substr(0,idx - 1).c_str());
+            msg = msg.substr(idx + 1);
+        }
+    }
 
     closefd();
 }
