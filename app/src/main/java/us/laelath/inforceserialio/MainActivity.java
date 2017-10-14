@@ -17,16 +17,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(!openSerialDevice())
-            return;
-
-        closeSerialDevice();
+        runReadTest();
     }
 
     /**
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    public native boolean openSerialDevice();
-    public native boolean closeSerialDevice();
+
+    public native void runReadTest();
 }

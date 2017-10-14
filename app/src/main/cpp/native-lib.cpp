@@ -1,50 +1,69 @@
 #include <jni.h>
 #include <string>
+#include <iostream>
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <unistd.h>
 
 #include <android/log.h>
 
-#define LOG_TAG "serial fd call"
+#define LOG_TAG "UART fd call"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 // File descriptor for the serial device
 // Yes I know this is bad practice but whatevs
-int serialFD = 0;
+int fd = 0;
 
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_us_laelath_inforceserialio_MainActivity_openSerialDevice(
-        JNIEnv *env,
-        jobject /* this */) {
-    // Open the file descriptor
-    serialFD = open("/dev/ttyHSL0", O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
-    if (serialFD == -1) {
-        LOGE("/dev/ttyHSL0 failed to open with error: %s", strerror(errno));
-        return (jboolean) false;
+bool openfd() {
+    fd = open("/dev/ttyHSL0", O_RDWR | O_NOCTTY, 0);
+    if (fd == -1) {
+        LOGE("Error opening /dev/ttyHSL0: %s", strerror(errno));
+        return false;
     } else {
-        LOGI("Successfully opened /dev/ttyHSL0");
-        return (jboolean) true;
+        LOGD("Successfully opened /dev/ttyHSL0");
+        return true;
     }
 }
 
+void closefd() {
+    if (close(fd) == -1)
+        LOGE("Error closing /dev/ttyHSL0: %s", strerror(errno));
+    else
+        LOGD("Successfully closed /dev/ttyHSL0");
+}
+
+std::string readfd() {
+    char buf[256];
+    ssize_t len;
+
+    len = read(fd, buf, 256);
+    if (len == -1) {
+        LOGE("Error reading from /dev/ttyHSL0: %s", strerror(errno));
+        return "";
+    } else if (len == 0) {
+        LOGD("Received EOF from /dev/ttyHSL0");
+        return "";
+    }
+    return std::string(buf, (unsigned long) len);
+}
+
 extern "C"
-JNIEXPORT jboolean JNICALL
-Java_us_laelath_inforceserialio_MainActivity_closeSerialDevice(
+JNIEXPORT void JNICALL
+Java_us_laelath_inforceserialio_MainActivity_runReadTest(
         JNIEnv *env,
         jobject /* this */) {
-    // Close the file descriptor
-    int err = close(serialFD);
-    if (err == -1) {
-        LOGE("/dev/ttyHSL0 failed to close with error: %s", strerror(errno));
-        return (jboolean) false;
-    } else {
-        LOGI("Successfully closed /dev/ttyHSL0");
-        return (jboolean) true;
-    }
+    if(!openfd())
+        return;
+
+    std::string msg = "";
+
+    do {
+        msg = readfd();
+        if (msg != "") {
+            std::cout << msg;
+        }
+    } while (msg != "");
+
+    closefd();
 }
