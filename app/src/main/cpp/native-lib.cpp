@@ -51,7 +51,7 @@ std::string readfd() {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_us_laelath_inforceserialio_MainActivity_runReadTest(
+Java_us_laelath_uarttest_MainActivity_runReadTest(
         JNIEnv *env,
         jobject /* this */) {
     if(!openfd())

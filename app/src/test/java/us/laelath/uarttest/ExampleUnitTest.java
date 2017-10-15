@@ -1,4 +1,4 @@
-package us.laelath.inforceserialio;
+package us.laelath.uarttest;
 
 import org.junit.Test;
 

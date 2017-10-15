@@ -1,4 +1,4 @@
-package us.laelath.inforceserialio;
+package us.laelath.uarttest;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
